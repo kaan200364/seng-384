@@ -2,9 +2,13 @@
 
 A full-stack web application built with React, Node.js (Express), PostgreSQL, and Docker Compose.
 
-## Project Description
+This project is part of the **SENG 384 course repository** and is located inside the `person-management-system` directory.
 
-This project is a simple Person Management System developed as a full-stack web application assignment.
+---
+
+# Project Description
+
+This project is a simple **Person Management System** developed as a full-stack web application assignment.
 
 The system allows users to:
 
@@ -20,7 +24,9 @@ The project demonstrates the integration of:
 - Database: PostgreSQL
 - Containerization: Docker and Docker Compose
 
-## Technologies Used
+---
+
+# Technologies Used
 
 - React
 - Node.js
@@ -29,26 +35,29 @@ The project demonstrates the integration of:
 - Docker
 - Docker Compose
 
-## Project Structure
+---
+
+# Project Structure
 
 ```text
-person-management-system/
-├── docker-compose.yml
-├── .env.example
-├── README.md
-├── backend/
-│   ├── Dockerfile
-│   ├── package.json
-│   └── src/
-│       ├── db.js
-│       ├── index.js
-│       └── routes/
-│           └── people.js
-├── frontend/
-│   ├── Dockerfile
-│   ├── package.json
-│   ├── server.js
-│   └── public/
-│       └── index.html
-└── db/
-    └── init.sql
+seng-384/
+└── person-management-system/
+    ├── docker-compose.yml
+    ├── .env.example
+    ├── README.md
+    ├── backend/
+    │   ├── Dockerfile
+    │   ├── package.json
+    │   └── src/
+    │       ├── db.js
+    │       ├── index.js
+    │       └── routes/
+    │           └── people.js
+    ├── frontend/
+    │   ├── Dockerfile
+    │   ├── package.json
+    │   ├── server.js
+    │   └── public/
+    │       └── index.html
+    └── db/
+        └── init.sql
