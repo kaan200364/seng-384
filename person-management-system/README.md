@@ -39,7 +39,6 @@ The project demonstrates the integration of:
 
 # Project Structure
 
-```text
 seng-384/
 └── person-management-system/
     ├── docker-compose.yml
@@ -64,119 +63,93 @@ seng-384/
 
 # Features
 
-- Create a new person
-- Read all people
-- Read a single person by ID
-- Update person information
-- Delete a person
-- Client-side validation
-- Backend validation
-- Unique email constraint
-- Multi-container setup using Docker Compose
+Create a new person
 
----
+Read all people
+
+Read a single person by ID
+
+Update person information
+
+Delete a person
+
+Client-side validation
+
+Backend validation
+
+Unique email constraint
+
+Multi-container setup using Docker Compose
 
 # Database Schema
 
-The application uses a PostgreSQL database with a `people` table.
+The application uses a PostgreSQL database with a people table.
 
-### Table: people
-
-| Column | Type | Constraints |
-|------|------|------|
-| id | SERIAL | PRIMARY KEY |
-| full_name | VARCHAR(255) | NOT NULL |
-| email | VARCHAR(255) | NOT NULL, UNIQUE |
-
----
+Table: people
+Column	Type	Constraints
+id	SERIAL	PRIMARY KEY
+full_name	VARCHAR(255)	NOT NULL
+email	VARCHAR(255)	NOT NULL, UNIQUE
 
 # Setup and Run Instructions
-
-## Prerequisites
+Prerequisites
 
 Make sure the following software is installed:
 
-- Docker Desktop
+Docker Desktop
 
----
-
-## Run the Project
+# Run the Project
 
 Clone the repository:
 
-
 git clone https://github.com/kaan200364/seng-384.git
-
 
 Navigate into the project directory:
 
-
 cd seng-384/person-management-system
-
 
 Run the system using Docker Compose:
 
-
 docker compose up --build
 
-
----
-
-# Access the Application
+# Access the Application 
 
 After running the containers, open the following URLs:
 
 Frontend
-
-
 http://localhost:3000
-
-
 Backend
-
-
 http://localhost:5000
-
-
 API Base URL
-
-
 http://localhost:5000/api
-
-
----
 
 # Environment Variables
 
 The backend uses the following environment variables:
 
-- DB_HOST
-- DB_PORT
-- DB_USER
-- DB_PASSWORD
-- DB_NAME
+DB_HOST
 
-Example `.env.example` file:
+DB_PORT
 
+DB_USER
 
+DB_PASSWORD
+
+DB_NAME
+
+Example .env file:
 DB_HOST=db
 DB_PORT=5432
 DB_USER=postgres
 DB_PASSWORD=postgres
 DB_NAME=people_db
 
-
----
-
 # API Documentation
-
-## GET /api/people
+GET /api/people
 
 Returns all people in the system.
 
-Example response:
-
-```json
+Example Response
 [
   {
     "id": 1,
@@ -188,16 +161,13 @@ GET /api/people/:id
 
 Returns a single person by ID.
 
-Example response:
-
+Example Response
 {
   "id": 1,
   "full_name": "Ahmet Yılmaz",
   "email": "ahmet@mail.com"
 }
-
-Error response:
-
+Error Response
 {
   "error": "PERSON_NOT_FOUND"
 }
@@ -205,15 +175,12 @@ POST /api/people
 
 Creates a new person.
 
-Request body:
-
+Request Body
 {
   "full_name": "Ahmet Yılmaz",
   "email": "ahmet@mail.com"
 }
-
-Possible error responses:
-
+Possible Errors
 {
   "error": "MISSING_FIELDS"
 }
@@ -227,8 +194,7 @@ PUT /api/people/:id
 
 Updates an existing person.
 
-Example request body:
-
+Request Body
 {
   "full_name": "Updated Name",
   "email": "updated@mail.com"
@@ -237,12 +203,12 @@ DELETE /api/people/:id
 
 Deletes a person by ID.
 
-Success response:
-
+Success Response
 {
   "message": "PERSON_DELETED"
 }
-Validation Rules
+
+# Validation Rules
 Frontend Validation
 
 Full Name cannot be empty
@@ -261,7 +227,7 @@ Email format must be valid
 
 Email must be unique
 
-HTTP Status Codes
+# HTTP Status Codes
 Code	Meaning
 200	Success
 201	Created
@@ -269,7 +235,9 @@ Code	Meaning
 404	Not Found
 409	Email Conflict
 500	Server Error
-Screenshots
+
+
+# Screenshots
 
 The following screenshots should be included for demonstration:
 
@@ -285,7 +253,7 @@ Delete confirmation dialog
 
 Docker containers running (docker ps)
 
-Learning Outcomes
+# Learning Outcomes
 
 This project demonstrates:
 
