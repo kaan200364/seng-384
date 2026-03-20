@@ -247,13 +247,27 @@ Registration form page
 
 People list page
 
+<img width="1915" height="860" alt="peopleListPage" src="https://github.com/user-attachments/assets/19228569-0ef0-493b-ba24-21ac74c26a04" />
+
+
 Successful create operation
+
+<img width="1132" height="452" alt="SuccesfullCreateOperatiion" src="https://github.com/user-attachments/assets/6683f6ea-8077-4256-9f5c-cad13aab5767" />
+
 
 Successful update operation
 
+<img width="1170" height="650" alt="SuccesfullUpdateOperation" src="https://github.com/user-attachments/assets/2512191f-cd8e-48e1-8b30-940eb3ae1aa5" />
+
+
 Delete confirmation dialog
+<img width="1135" height="573" alt="Delete confirmation dialog" src="https://github.com/user-attachments/assets/76939053-084b-413e-a5cc-5ac6285037b0" />
+
 
 Docker containers running (docker ps)
+
+<img width="1185" height="612" alt="image" src="https://github.com/user-attachments/assets/6c6eccb5-4fb6-49af-9e17-3baefc2bc2c7" />
+
 
 # Learning Outcomes
 
