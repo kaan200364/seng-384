@@ -242,6 +242,8 @@ Code	Meaning
 The following screenshots should be included for demonstration:
 
 Registration form page
+<img width="1887" height="881" alt="registirationformpage" src="https://github.com/user-attachments/assets/b3a5334d-f5eb-4106-b7fe-d101017d9cd5" />
+
 
 People list page
 
