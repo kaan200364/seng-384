@@ -1,0 +1,13 @@
+{
+  "name": "person-management-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
+}
