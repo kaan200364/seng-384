@@ -1,0 +1,6 @@
+.env
+.env.*
+*.zip
+node_modules/
+health-ai-platform/backend/api/dist/
+health-ai-platform/frontend/.next/

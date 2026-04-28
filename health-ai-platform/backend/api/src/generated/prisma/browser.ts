@@ -27,3 +27,18 @@ export type User = Prisma.UserModel
  * 
  */
 export type Post = Prisma.PostModel
+/**
+ * Model MeetingRequest
+ * 
+ */
+export type MeetingRequest = Prisma.MeetingRequestModel
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
+ * Model ActivityLog
+ * 
+ */
+export type ActivityLog = Prisma.ActivityLogModel

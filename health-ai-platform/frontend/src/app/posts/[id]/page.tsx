@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import { useParams } from 'next/navigation';
 import AppShell from '@/components/AppShell';
 import SectionCard from '@/components/SectionCard';
@@ -18,10 +18,6 @@ export default function PostDetailPage() {
   );
   const [slot, setSlot] = useState('2026-05-01 14:00');
   const [ndaAccepted, setNdaAccepted] = useState(false);
-
-  useEffect(() => {
-    void loadPost();
-  }, [postId]);
 
   async function loadPost() {
     try {
@@ -49,6 +45,14 @@ export default function PostDetailPage() {
       setMessage(err instanceof Error ? err.message : 'Meeting request failed');
     }
   }
+
+  const syncPost = useEffectEvent(() => {
+    void loadPost();
+  });
+
+  useEffect(() => {
+    syncPost();
+  }, [postId]);
 
   if (!post) {
     return <p className="p-10">Loading post...</p>;

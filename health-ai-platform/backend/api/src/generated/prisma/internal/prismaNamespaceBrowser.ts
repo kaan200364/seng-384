@@ -52,7 +52,10 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
-  Post: 'Post'
+  Post: 'Post',
+  MeetingRequest: 'MeetingRequest',
+  Notification: 'Notification',
+  ActivityLog: 'ActivityLog'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -77,7 +80,14 @@ export const UserScalarFieldEnum = {
   password: 'password',
   fullName: 'fullName',
   role: 'role',
-  createdAt: 'createdAt'
+  institution: 'institution',
+  expertise: 'expertise',
+  city: 'city',
+  bio: 'bio',
+  emailVerified: 'emailVerified',
+  suspended: 'suspended',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -86,13 +96,62 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 export const PostScalarFieldEnum = {
   id: 'id',
   title: 'title',
+  domain: 'domain',
+  requiredExpertise: 'requiredExpertise',
+  projectStage: 'projectStage',
+  confidentialityLevel: 'confidentialityLevel',
+  city: 'city',
   description: 'description',
   status: 'status',
   createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   authorId: 'authorId'
 } as const
 
 export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
+
+
+export const MeetingRequestScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  requesterId: 'requesterId',
+  ownerId: 'ownerId',
+  message: 'message',
+  ndaAccepted: 'ndaAccepted',
+  proposedSlot: 'proposedSlot',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MeetingRequestScalarFieldEnum = (typeof MeetingRequestScalarFieldEnum)[keyof typeof MeetingRequestScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  title: 'title',
+  message: 'message',
+  read: 'read',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const ActivityLogScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  userName: 'userName',
+  userRole: 'userRole',
+  actionType: 'actionType',
+  targetType: 'targetType',
+  targetId: 'targetId',
+  details: 'details',
+  createdAt: 'createdAt'
+} as const
+
+export type ActivityLogScalarFieldEnum = (typeof ActivityLogScalarFieldEnum)[keyof typeof ActivityLogScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -109,4 +168,12 @@ export const QueryMode = {
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 

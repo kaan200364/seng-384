@@ -1,6 +1,7 @@
 'use client';
 
-export const API_BASE_URL = 'http://localhost:3000';
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
 export type SessionUser = {
   id?: number;
@@ -64,7 +65,20 @@ export async function apiFetch(path: string, init: RequestInit = {}) {
 }
 
 export async function apiJson<T>(path: string, init: RequestInit = {}) {
-  const response = await apiFetch(path, init);
+  let response: Response;
+
+  try {
+    response = await apiFetch(path, init);
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error(
+        `Backend'e ulasilamadi. API adresini kontrol et: ${API_BASE_URL}`,
+      );
+    }
+
+    throw error;
+  }
+
   const text = await response.text();
   const data = text ? JSON.parse(text) : null;
 

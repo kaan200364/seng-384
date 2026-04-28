@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import AppShell from '@/components/AppShell';
 import SectionCard from '@/components/SectionCard';
 import StatCard from '@/components/StatCard';
@@ -25,18 +25,27 @@ export default function AdminPage() {
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [postStatus, setPostStatus] = useState('ALL');
   const [logAction, setLogAction] = useState('ALL');
+  const [logDateFrom, setLogDateFrom] = useState('');
+  const [logDateTo, setLogDateTo] = useState('');
   const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    void loadAdminData();
-  }, [roleFilter, postStatus, logAction]);
 
   async function loadAdminData() {
     try {
+      const logQuery = new URLSearchParams();
+      if (logAction !== 'ALL') {
+        logQuery.set('actionType', logAction);
+      }
+      if (logDateFrom) {
+        logQuery.set('dateFrom', logDateFrom);
+      }
+      if (logDateTo) {
+        logQuery.set('dateTo', logDateTo);
+      }
+
       const [usersData, postsData, logsData] = await Promise.all([
         apiJson<UserProfile[]>(`/admin/users?role=${roleFilter}`),
         apiJson<PostItem[]>(`/admin/posts?status=${postStatus}`),
-        apiJson<LogItem[]>(`/admin/logs?actionType=${logAction}`),
+        apiJson<LogItem[]>(`/admin/logs${logQuery.size ? `?${logQuery.toString()}` : ''}`),
       ]);
       setUsers(usersData);
       setPosts(postsData);
@@ -68,7 +77,20 @@ export default function AdminPage() {
 
   async function exportLogs() {
     try {
-      const response = await apiFetch(`/admin/logs/export?actionType=${logAction}`);
+      const logQuery = new URLSearchParams();
+      if (logAction !== 'ALL') {
+        logQuery.set('actionType', logAction);
+      }
+      if (logDateFrom) {
+        logQuery.set('dateFrom', logDateFrom);
+      }
+      if (logDateTo) {
+        logQuery.set('dateTo', logDateTo);
+      }
+
+      const response = await apiFetch(
+        `/admin/logs/export${logQuery.size ? `?${logQuery.toString()}` : ''}`,
+      );
       const text = await response.text();
       const blob = new Blob([text], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
@@ -82,6 +104,14 @@ export default function AdminPage() {
       setMessage('CSV export failed');
     }
   }
+
+  const syncAdminData = useEffectEvent(() => {
+    void loadAdminData();
+  });
+
+  useEffect(() => {
+    syncAdminData();
+  }, [roleFilter, postStatus, logAction, logDateFrom, logDateTo]);
 
   return (
     <AppShell
@@ -158,7 +188,7 @@ export default function AdminPage() {
             </div>
           </SectionCard>
 
-          <SectionCard title="Activity Logs" subtitle="Filter by action type and export CSV.">
+          <SectionCard title="Activity Logs" subtitle="Filter by action type, date range, and export CSV.">
             <div className="space-y-4">
               <select
                 value={logAction}
@@ -173,6 +203,21 @@ export default function AdminPage() {
                 <option value="meeting_status_change">meeting_status_change</option>
                 <option value="admin_remove_post">admin_remove_post</option>
               </select>
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <input
+                  type="date"
+                  value={logDateFrom}
+                  onChange={(event) => setLogDateFrom(event.target.value)}
+                  className="rounded-xl border border-slate-200 px-4 py-3"
+                />
+                <input
+                  type="date"
+                  value={logDateTo}
+                  onChange={(event) => setLogDateTo(event.target.value)}
+                  className="rounded-xl border border-slate-200 px-4 py-3"
+                />
+              </div>
 
               <button onClick={() => void exportLogs()} className="w-full rounded-xl bg-[#ba4a2f] px-4 py-3 text-white">
                 Export CSV

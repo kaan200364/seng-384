@@ -14,15 +14,30 @@ enum UserRole {
   ADMIN
 }
 
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  fullName  String
-  role      UserRole
-  createdAt DateTime @default(now())
+enum ConfidentialityLevel {
+  PUBLIC
+  CONFIDENTIAL
+}
 
-  posts     Post[]
+model User {
+  id                 Int              @id @default(autoincrement())
+  email              String           @unique
+  password           String
+  fullName           String
+  role               UserRole
+  institution        String           @default("Not provided")
+  expertise          String           @default("Not provided")
+  city               String           @default("Not provided")
+  bio                String           @default("")
+  emailVerified      Boolean          @default(false)
+  suspended          Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  posts              Post[]
+  requestedMeetings  MeetingRequest[] @relation("MeetingRequester")
+  ownedMeetings      MeetingRequest[] @relation("MeetingOwner")
+  notifications      Notification[]
+  activityLogs       ActivityLog[]
 }
 
 enum PostStatus {
@@ -34,12 +49,66 @@ enum PostStatus {
 }
 
 model Post {
-  id          Int        @id @default(autoincrement())
-  title       String
-  description String
-  status      PostStatus @default(ACTIVE)
-  createdAt   DateTime   @default(now())
+  id                   Int                  @id @default(autoincrement())
+  title                String
+  domain               String
+  requiredExpertise    String
+  projectStage         String
+  confidentialityLevel ConfidentialityLevel @default(PUBLIC)
+  city                 String
+  description          String
+  status               PostStatus           @default(ACTIVE)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  authorId             Int
+  author               User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  meetings             MeetingRequest[]
+}
 
-  authorId    Int
-  author      User       @relation(fields: [authorId], references: [id])
+enum MeetingRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+model MeetingRequest {
+  id           Int                  @id @default(autoincrement())
+  postId       Int
+  requesterId  Int
+  ownerId      Int
+  message      String
+  ndaAccepted  Boolean
+  proposedSlot String
+  status       MeetingRequestStatus @default(PENDING)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  post         Post                 @relation(fields: [postId], references: [id], onDelete: Cascade)
+  requester    User                 @relation("MeetingRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  owner        User                 @relation("MeetingOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  userName   String
+  userRole   UserRole
+  actionType String
+  targetType String
+  targetId   String
+  details    String
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 }

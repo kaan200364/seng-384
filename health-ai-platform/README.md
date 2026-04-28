@@ -2,6 +2,12 @@
 
 Demo-oriented implementation for the SENG 384 Health AI project.
 
+## Stack
+
+- Frontend: Next.js 16, React 19, TypeScript
+- Backend: NestJS 11, TypeScript, JWT auth
+- Database: PostgreSQL 15, Prisma 7, Docker Compose
+
 ## Demo Accounts
 
 - `engineer@metu.edu` / `demo123`
@@ -23,11 +29,30 @@ Demo-oriented implementation for the SENG 384 Health AI project.
 
 ## Run
 
+### PostgreSQL
+
+```bash
+docker compose up -d
+```
+
+### Environment
+
+Backend uses `backend/api/.env`.
+
+Required values:
+
+```env
+DATABASE_URL="postgresql://admin:admin@localhost:5432/healthai?schema=public"
+JWT_SECRET="supersecretkey"
+```
+
 ### Backend
 
 ```bash
 cd backend/api
 npm install
+npx prisma generate
+npx prisma migrate deploy
 npm run start:dev
 ```
 
@@ -40,3 +65,13 @@ npm run dev
 ```
 
 Frontend runs on `http://localhost:3001` and backend runs on `http://localhost:3000`.
+
+## Verification
+
+```bash
+cd backend/api
+npm run build
+
+cd ../../frontend
+npm run build
+```

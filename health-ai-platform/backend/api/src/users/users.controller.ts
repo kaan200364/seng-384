@@ -34,14 +34,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('me/export')
   async exportMyData(@Req() req: any) {
-    const user = await this.usersService.getPublicUserById(req.user.userId);
-    const notifications = this.platformState.getNotificationsForUser(req.user.userId);
-
-    return {
-      exportedAt: new Date().toISOString(),
-      user,
-      notifications,
-    };
+    return this.usersService.exportUserData(req.user.userId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -68,7 +61,10 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Delete('me')
-  async deleteMyAccount(@Req() req: any) {
-    return this.usersService.deleteUser(req.user.userId);
+  async deleteMyAccount(
+    @Req() req: any,
+    @Body() body: { password: string },
+  ) {
+    return this.usersService.deleteUser(req.user.userId, body.password);
   }
 }

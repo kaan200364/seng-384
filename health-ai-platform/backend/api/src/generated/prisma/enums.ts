@@ -18,6 +18,14 @@ export const UserRole = {
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 
 
+export const ConfidentialityLevel = {
+  PUBLIC: 'PUBLIC',
+  CONFIDENTIAL: 'CONFIDENTIAL'
+} as const
+
+export type ConfidentialityLevel = (typeof ConfidentialityLevel)[keyof typeof ConfidentialityLevel]
+
+
 export const PostStatus = {
   DRAFT: 'DRAFT',
   ACTIVE: 'ACTIVE',
@@ -27,3 +35,15 @@ export const PostStatus = {
 } as const
 
 export type PostStatus = (typeof PostStatus)[keyof typeof PostStatus]
+
+
+export const MeetingRequestStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  DECLINED: 'DECLINED',
+  SCHEDULED: 'SCHEDULED',
+  CANCELLED: 'CANCELLED',
+  COMPLETED: 'COMPLETED'
+} as const
+
+export type MeetingRequestStatus = (typeof MeetingRequestStatus)[keyof typeof MeetingRequestStatus]

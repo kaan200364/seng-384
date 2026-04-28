@@ -39,27 +39,45 @@ export type PostSumAggregateOutputType = {
 export type PostMinAggregateOutputType = {
   id: number | null
   title: string | null
+  domain: string | null
+  requiredExpertise: string | null
+  projectStage: string | null
+  confidentialityLevel: $Enums.ConfidentialityLevel | null
+  city: string | null
   description: string | null
   status: $Enums.PostStatus | null
   createdAt: Date | null
+  updatedAt: Date | null
   authorId: number | null
 }
 
 export type PostMaxAggregateOutputType = {
   id: number | null
   title: string | null
+  domain: string | null
+  requiredExpertise: string | null
+  projectStage: string | null
+  confidentialityLevel: $Enums.ConfidentialityLevel | null
+  city: string | null
   description: string | null
   status: $Enums.PostStatus | null
   createdAt: Date | null
+  updatedAt: Date | null
   authorId: number | null
 }
 
 export type PostCountAggregateOutputType = {
   id: number
   title: number
+  domain: number
+  requiredExpertise: number
+  projectStage: number
+  confidentialityLevel: number
+  city: number
   description: number
   status: number
   createdAt: number
+  updatedAt: number
   authorId: number
   _all: number
 }
@@ -78,27 +96,45 @@ export type PostSumAggregateInputType = {
 export type PostMinAggregateInputType = {
   id?: true
   title?: true
+  domain?: true
+  requiredExpertise?: true
+  projectStage?: true
+  confidentialityLevel?: true
+  city?: true
   description?: true
   status?: true
   createdAt?: true
+  updatedAt?: true
   authorId?: true
 }
 
 export type PostMaxAggregateInputType = {
   id?: true
   title?: true
+  domain?: true
+  requiredExpertise?: true
+  projectStage?: true
+  confidentialityLevel?: true
+  city?: true
   description?: true
   status?: true
   createdAt?: true
+  updatedAt?: true
   authorId?: true
 }
 
 export type PostCountAggregateInputType = {
   id?: true
   title?: true
+  domain?: true
+  requiredExpertise?: true
+  projectStage?: true
+  confidentialityLevel?: true
+  city?: true
   description?: true
   status?: true
   createdAt?: true
+  updatedAt?: true
   authorId?: true
   _all?: true
 }
@@ -192,9 +228,15 @@ export type PostGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type PostGroupByOutputType = {
   id: number
   title: string
+  domain: string
+  requiredExpertise: string
+  projectStage: string
+  confidentialityLevel: $Enums.ConfidentialityLevel
+  city: string
   description: string
   status: $Enums.PostStatus
   createdAt: Date
+  updatedAt: Date
   authorId: number
   _count: PostCountAggregateOutputType | null
   _avg: PostAvgAggregateOutputType | null
@@ -224,21 +266,35 @@ export type PostWhereInput = {
   NOT?: Prisma.PostWhereInput | Prisma.PostWhereInput[]
   id?: Prisma.IntFilter<"Post"> | number
   title?: Prisma.StringFilter<"Post"> | string
+  domain?: Prisma.StringFilter<"Post"> | string
+  requiredExpertise?: Prisma.StringFilter<"Post"> | string
+  projectStage?: Prisma.StringFilter<"Post"> | string
+  confidentialityLevel?: Prisma.EnumConfidentialityLevelFilter<"Post"> | $Enums.ConfidentialityLevel
+  city?: Prisma.StringFilter<"Post"> | string
   description?: Prisma.StringFilter<"Post"> | string
   status?: Prisma.EnumPostStatusFilter<"Post"> | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFilter<"Post"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Post"> | Date | string
   authorId?: Prisma.IntFilter<"Post"> | number
   author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  meetings?: Prisma.MeetingRequestListRelationFilter
 }
 
 export type PostOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  domain?: Prisma.SortOrder
+  requiredExpertise?: Prisma.SortOrder
+  projectStage?: Prisma.SortOrder
+  confidentialityLevel?: Prisma.SortOrder
+  city?: Prisma.SortOrder
   description?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
   author?: Prisma.UserOrderByWithRelationInput
+  meetings?: Prisma.MeetingRequestOrderByRelationAggregateInput
 }
 
 export type PostWhereUniqueInput = Prisma.AtLeast<{
@@ -247,19 +303,32 @@ export type PostWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.PostWhereInput[]
   NOT?: Prisma.PostWhereInput | Prisma.PostWhereInput[]
   title?: Prisma.StringFilter<"Post"> | string
+  domain?: Prisma.StringFilter<"Post"> | string
+  requiredExpertise?: Prisma.StringFilter<"Post"> | string
+  projectStage?: Prisma.StringFilter<"Post"> | string
+  confidentialityLevel?: Prisma.EnumConfidentialityLevelFilter<"Post"> | $Enums.ConfidentialityLevel
+  city?: Prisma.StringFilter<"Post"> | string
   description?: Prisma.StringFilter<"Post"> | string
   status?: Prisma.EnumPostStatusFilter<"Post"> | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFilter<"Post"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Post"> | Date | string
   authorId?: Prisma.IntFilter<"Post"> | number
   author?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  meetings?: Prisma.MeetingRequestListRelationFilter
 }, "id">
 
 export type PostOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  domain?: Prisma.SortOrder
+  requiredExpertise?: Prisma.SortOrder
+  projectStage?: Prisma.SortOrder
+  confidentialityLevel?: Prisma.SortOrder
+  city?: Prisma.SortOrder
   description?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
   _count?: Prisma.PostCountOrderByAggregateInput
   _avg?: Prisma.PostAvgOrderByAggregateInput
@@ -274,68 +343,120 @@ export type PostScalarWhereWithAggregatesInput = {
   NOT?: Prisma.PostScalarWhereWithAggregatesInput | Prisma.PostScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"Post"> | number
   title?: Prisma.StringWithAggregatesFilter<"Post"> | string
+  domain?: Prisma.StringWithAggregatesFilter<"Post"> | string
+  requiredExpertise?: Prisma.StringWithAggregatesFilter<"Post"> | string
+  projectStage?: Prisma.StringWithAggregatesFilter<"Post"> | string
+  confidentialityLevel?: Prisma.EnumConfidentialityLevelWithAggregatesFilter<"Post"> | $Enums.ConfidentialityLevel
+  city?: Prisma.StringWithAggregatesFilter<"Post"> | string
   description?: Prisma.StringWithAggregatesFilter<"Post"> | string
   status?: Prisma.EnumPostStatusWithAggregatesFilter<"Post"> | $Enums.PostStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Post"> | Date | string
+  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Post"> | Date | string
   authorId?: Prisma.IntWithAggregatesFilter<"Post"> | number
 }
 
 export type PostCreateInput = {
   title: string
+  domain: string
+  requiredExpertise: string
+  projectStage: string
+  confidentialityLevel?: $Enums.ConfidentialityLevel
+  city: string
   description: string
   status?: $Enums.PostStatus
   createdAt?: Date | string
+  updatedAt?: Date | string
   author: Prisma.UserCreateNestedOneWithoutPostsInput
+  meetings?: Prisma.MeetingRequestCreateNestedManyWithoutPostInput
 }
 
 export type PostUncheckedCreateInput = {
   id?: number
   title: string
+  domain: string
+  requiredExpertise: string
+  projectStage: string
+  confidentialityLevel?: $Enums.ConfidentialityLevel
+  city: string
   description: string
   status?: $Enums.PostStatus
   createdAt?: Date | string
+  updatedAt?: Date | string
   authorId: number
+  meetings?: Prisma.MeetingRequestUncheckedCreateNestedManyWithoutPostInput
 }
 
 export type PostUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  domain?: Prisma.StringFieldUpdateOperationsInput | string
+  requiredExpertise?: Prisma.StringFieldUpdateOperationsInput | string
+  projectStage?: Prisma.StringFieldUpdateOperationsInput | string
+  confidentialityLevel?: Prisma.EnumConfidentialityLevelFieldUpdateOperationsInput | $Enums.ConfidentialityLevel
+  city?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   author?: Prisma.UserUpdateOneRequiredWithoutPostsNestedInput
+  meetings?: Prisma.MeetingRequestUpdateManyWithoutPostNestedInput
 }
 
 export type PostUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  domain?: Prisma.StringFieldUpdateOperationsInput | string
+  requiredExpertise?: Prisma.StringFieldUpdateOperationsInput | string
+  projectStage?: Prisma.StringFieldUpdateOperationsInput | string
+  confidentialityLevel?: Prisma.EnumConfidentialityLevelFieldUpdateOperationsInput | $Enums.ConfidentialityLevel
+  city?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   authorId?: Prisma.IntFieldUpdateOperationsInput | number
+  meetings?: Prisma.MeetingRequestUncheckedUpdateManyWithoutPostNestedInput
 }
 
 export type PostCreateManyInput = {
   id?: number
   title: string
+  domain: string
+  requiredExpertise: string
+  projectStage: string
+  confidentialityLevel?: $Enums.ConfidentialityLevel
+  city: string
   description: string
   status?: $Enums.PostStatus
   createdAt?: Date | string
+  updatedAt?: Date | string
   authorId: number
 }
 
 export type PostUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  domain?: Prisma.StringFieldUpdateOperationsInput | string
+  requiredExpertise?: Prisma.StringFieldUpdateOperationsInput | string
+  projectStage?: Prisma.StringFieldUpdateOperationsInput | string
+  confidentialityLevel?: Prisma.EnumConfidentialityLevelFieldUpdateOperationsInput | $Enums.ConfidentialityLevel
+  city?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type PostUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  domain?: Prisma.StringFieldUpdateOperationsInput | string
+  requiredExpertise?: Prisma.StringFieldUpdateOperationsInput | string
+  projectStage?: Prisma.StringFieldUpdateOperationsInput | string
+  confidentialityLevel?: Prisma.EnumConfidentialityLevelFieldUpdateOperationsInput | $Enums.ConfidentialityLevel
+  city?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   authorId?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
@@ -352,9 +473,15 @@ export type PostOrderByRelationAggregateInput = {
 export type PostCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  domain?: Prisma.SortOrder
+  requiredExpertise?: Prisma.SortOrder
+  projectStage?: Prisma.SortOrder
+  confidentialityLevel?: Prisma.SortOrder
+  city?: Prisma.SortOrder
   description?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
 }
 
@@ -366,24 +493,41 @@ export type PostAvgOrderByAggregateInput = {
 export type PostMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  domain?: Prisma.SortOrder
+  requiredExpertise?: Prisma.SortOrder
+  projectStage?: Prisma.SortOrder
+  confidentialityLevel?: Prisma.SortOrder
+  city?: Prisma.SortOrder
   description?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
 }
 
 export type PostMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  domain?: Prisma.SortOrder
+  requiredExpertise?: Prisma.SortOrder
+  projectStage?: Prisma.SortOrder
+  confidentialityLevel?: Prisma.SortOrder
+  city?: Prisma.SortOrder
   description?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  updatedAt?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
 }
 
 export type PostSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   authorId?: Prisma.SortOrder
+}
+
+export type PostScalarRelationFilter = {
+  is?: Prisma.PostWhereInput
+  isNot?: Prisma.PostWhereInput
 }
 
 export type PostCreateNestedManyWithoutAuthorInput = {
@@ -428,23 +572,55 @@ export type PostUncheckedUpdateManyWithoutAuthorNestedInput = {
   deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
 }
 
+export type EnumConfidentialityLevelFieldUpdateOperationsInput = {
+  set?: $Enums.ConfidentialityLevel
+}
+
 export type EnumPostStatusFieldUpdateOperationsInput = {
   set?: $Enums.PostStatus
 }
 
+export type PostCreateNestedOneWithoutMeetingsInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutMeetingsInput, Prisma.PostUncheckedCreateWithoutMeetingsInput>
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutMeetingsInput
+  connect?: Prisma.PostWhereUniqueInput
+}
+
+export type PostUpdateOneRequiredWithoutMeetingsNestedInput = {
+  create?: Prisma.XOR<Prisma.PostCreateWithoutMeetingsInput, Prisma.PostUncheckedCreateWithoutMeetingsInput>
+  connectOrCreate?: Prisma.PostCreateOrConnectWithoutMeetingsInput
+  upsert?: Prisma.PostUpsertWithoutMeetingsInput
+  connect?: Prisma.PostWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PostUpdateToOneWithWhereWithoutMeetingsInput, Prisma.PostUpdateWithoutMeetingsInput>, Prisma.PostUncheckedUpdateWithoutMeetingsInput>
+}
+
 export type PostCreateWithoutAuthorInput = {
   title: string
+  domain: string
+  requiredExpertise: string
+  projectStage: string
+  confidentialityLevel?: $Enums.ConfidentialityLevel
+  city: string
   description: string
   status?: $Enums.PostStatus
   createdAt?: Date | string
+  updatedAt?: Date | string
+  meetings?: Prisma.MeetingRequestCreateNestedManyWithoutPostInput
 }
 
 export type PostUncheckedCreateWithoutAuthorInput = {
   id?: number
   title: string
+  domain: string
+  requiredExpertise: string
+  projectStage: string
+  confidentialityLevel?: $Enums.ConfidentialityLevel
+  city: string
   description: string
   status?: $Enums.PostStatus
   createdAt?: Date | string
+  updatedAt?: Date | string
+  meetings?: Prisma.MeetingRequestUncheckedCreateNestedManyWithoutPostInput
 }
 
 export type PostCreateOrConnectWithoutAuthorInput = {
@@ -479,61 +655,210 @@ export type PostScalarWhereInput = {
   NOT?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
   id?: Prisma.IntFilter<"Post"> | number
   title?: Prisma.StringFilter<"Post"> | string
+  domain?: Prisma.StringFilter<"Post"> | string
+  requiredExpertise?: Prisma.StringFilter<"Post"> | string
+  projectStage?: Prisma.StringFilter<"Post"> | string
+  confidentialityLevel?: Prisma.EnumConfidentialityLevelFilter<"Post"> | $Enums.ConfidentialityLevel
+  city?: Prisma.StringFilter<"Post"> | string
   description?: Prisma.StringFilter<"Post"> | string
   status?: Prisma.EnumPostStatusFilter<"Post"> | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFilter<"Post"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"Post"> | Date | string
   authorId?: Prisma.IntFilter<"Post"> | number
+}
+
+export type PostCreateWithoutMeetingsInput = {
+  title: string
+  domain: string
+  requiredExpertise: string
+  projectStage: string
+  confidentialityLevel?: $Enums.ConfidentialityLevel
+  city: string
+  description: string
+  status?: $Enums.PostStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  author: Prisma.UserCreateNestedOneWithoutPostsInput
+}
+
+export type PostUncheckedCreateWithoutMeetingsInput = {
+  id?: number
+  title: string
+  domain: string
+  requiredExpertise: string
+  projectStage: string
+  confidentialityLevel?: $Enums.ConfidentialityLevel
+  city: string
+  description: string
+  status?: $Enums.PostStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  authorId: number
+}
+
+export type PostCreateOrConnectWithoutMeetingsInput = {
+  where: Prisma.PostWhereUniqueInput
+  create: Prisma.XOR<Prisma.PostCreateWithoutMeetingsInput, Prisma.PostUncheckedCreateWithoutMeetingsInput>
+}
+
+export type PostUpsertWithoutMeetingsInput = {
+  update: Prisma.XOR<Prisma.PostUpdateWithoutMeetingsInput, Prisma.PostUncheckedUpdateWithoutMeetingsInput>
+  create: Prisma.XOR<Prisma.PostCreateWithoutMeetingsInput, Prisma.PostUncheckedCreateWithoutMeetingsInput>
+  where?: Prisma.PostWhereInput
+}
+
+export type PostUpdateToOneWithWhereWithoutMeetingsInput = {
+  where?: Prisma.PostWhereInput
+  data: Prisma.XOR<Prisma.PostUpdateWithoutMeetingsInput, Prisma.PostUncheckedUpdateWithoutMeetingsInput>
+}
+
+export type PostUpdateWithoutMeetingsInput = {
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  domain?: Prisma.StringFieldUpdateOperationsInput | string
+  requiredExpertise?: Prisma.StringFieldUpdateOperationsInput | string
+  projectStage?: Prisma.StringFieldUpdateOperationsInput | string
+  confidentialityLevel?: Prisma.EnumConfidentialityLevelFieldUpdateOperationsInput | $Enums.ConfidentialityLevel
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  author?: Prisma.UserUpdateOneRequiredWithoutPostsNestedInput
+}
+
+export type PostUncheckedUpdateWithoutMeetingsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  domain?: Prisma.StringFieldUpdateOperationsInput | string
+  requiredExpertise?: Prisma.StringFieldUpdateOperationsInput | string
+  projectStage?: Prisma.StringFieldUpdateOperationsInput | string
+  confidentialityLevel?: Prisma.EnumConfidentialityLevelFieldUpdateOperationsInput | $Enums.ConfidentialityLevel
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  authorId?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type PostCreateManyAuthorInput = {
   id?: number
   title: string
+  domain: string
+  requiredExpertise: string
+  projectStage: string
+  confidentialityLevel?: $Enums.ConfidentialityLevel
+  city: string
   description: string
   status?: $Enums.PostStatus
   createdAt?: Date | string
+  updatedAt?: Date | string
 }
 
 export type PostUpdateWithoutAuthorInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  domain?: Prisma.StringFieldUpdateOperationsInput | string
+  requiredExpertise?: Prisma.StringFieldUpdateOperationsInput | string
+  projectStage?: Prisma.StringFieldUpdateOperationsInput | string
+  confidentialityLevel?: Prisma.EnumConfidentialityLevelFieldUpdateOperationsInput | $Enums.ConfidentialityLevel
+  city?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meetings?: Prisma.MeetingRequestUpdateManyWithoutPostNestedInput
 }
 
 export type PostUncheckedUpdateWithoutAuthorInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  domain?: Prisma.StringFieldUpdateOperationsInput | string
+  requiredExpertise?: Prisma.StringFieldUpdateOperationsInput | string
+  projectStage?: Prisma.StringFieldUpdateOperationsInput | string
+  confidentialityLevel?: Prisma.EnumConfidentialityLevelFieldUpdateOperationsInput | $Enums.ConfidentialityLevel
+  city?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  meetings?: Prisma.MeetingRequestUncheckedUpdateManyWithoutPostNestedInput
 }
 
 export type PostUncheckedUpdateManyWithoutAuthorInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   title?: Prisma.StringFieldUpdateOperationsInput | string
+  domain?: Prisma.StringFieldUpdateOperationsInput | string
+  requiredExpertise?: Prisma.StringFieldUpdateOperationsInput | string
+  projectStage?: Prisma.StringFieldUpdateOperationsInput | string
+  confidentialityLevel?: Prisma.EnumConfidentialityLevelFieldUpdateOperationsInput | $Enums.ConfidentialityLevel
+  city?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumPostStatusFieldUpdateOperationsInput | $Enums.PostStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+
+/**
+ * Count Type PostCountOutputType
+ */
+
+export type PostCountOutputType = {
+  meetings: number
+}
+
+export type PostCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  meetings?: boolean | PostCountOutputTypeCountMeetingsArgs
+}
+
+/**
+ * PostCountOutputType without action
+ */
+export type PostCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PostCountOutputType
+   */
+  select?: Prisma.PostCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * PostCountOutputType without action
+ */
+export type PostCountOutputTypeCountMeetingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MeetingRequestWhereInput
+}
 
 
 export type PostSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   title?: boolean
+  domain?: boolean
+  requiredExpertise?: boolean
+  projectStage?: boolean
+  confidentialityLevel?: boolean
+  city?: boolean
   description?: boolean
   status?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   authorId?: boolean
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  meetings?: boolean | Prisma.Post$meetingsArgs<ExtArgs>
+  _count?: boolean | Prisma.PostCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["post"]>
 
 export type PostSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   title?: boolean
+  domain?: boolean
+  requiredExpertise?: boolean
+  projectStage?: boolean
+  confidentialityLevel?: boolean
+  city?: boolean
   description?: boolean
   status?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   authorId?: boolean
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["post"]>
@@ -541,9 +866,15 @@ export type PostSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type PostSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   title?: boolean
+  domain?: boolean
+  requiredExpertise?: boolean
+  projectStage?: boolean
+  confidentialityLevel?: boolean
+  city?: boolean
   description?: boolean
   status?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   authorId?: boolean
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["post"]>
@@ -551,15 +882,23 @@ export type PostSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 export type PostSelectScalar = {
   id?: boolean
   title?: boolean
+  domain?: boolean
+  requiredExpertise?: boolean
+  projectStage?: boolean
+  confidentialityLevel?: boolean
+  city?: boolean
   description?: boolean
   status?: boolean
   createdAt?: boolean
+  updatedAt?: boolean
   authorId?: boolean
 }
 
-export type PostOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "description" | "status" | "createdAt" | "authorId", ExtArgs["result"]["post"]>
+export type PostOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "domain" | "requiredExpertise" | "projectStage" | "confidentialityLevel" | "city" | "description" | "status" | "createdAt" | "updatedAt" | "authorId", ExtArgs["result"]["post"]>
 export type PostInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  meetings?: boolean | Prisma.Post$meetingsArgs<ExtArgs>
+  _count?: boolean | Prisma.PostCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type PostIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   author?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -572,13 +911,20 @@ export type $PostPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "Post"
   objects: {
     author: Prisma.$UserPayload<ExtArgs>
+    meetings: Prisma.$MeetingRequestPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
     title: string
+    domain: string
+    requiredExpertise: string
+    projectStage: string
+    confidentialityLevel: $Enums.ConfidentialityLevel
+    city: string
     description: string
     status: $Enums.PostStatus
     createdAt: Date
+    updatedAt: Date
     authorId: number
   }, ExtArgs["result"]["post"]>
   composites: {}
@@ -975,6 +1321,7 @@ readonly fields: PostFieldRefs;
 export interface Prisma__PostClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   author<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  meetings<T extends Prisma.Post$meetingsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Post$meetingsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MeetingRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1006,9 +1353,15 @@ export interface Prisma__PostClient<T, Null = never, ExtArgs extends runtime.Typ
 export interface PostFieldRefs {
   readonly id: Prisma.FieldRef<"Post", 'Int'>
   readonly title: Prisma.FieldRef<"Post", 'String'>
+  readonly domain: Prisma.FieldRef<"Post", 'String'>
+  readonly requiredExpertise: Prisma.FieldRef<"Post", 'String'>
+  readonly projectStage: Prisma.FieldRef<"Post", 'String'>
+  readonly confidentialityLevel: Prisma.FieldRef<"Post", 'ConfidentialityLevel'>
+  readonly city: Prisma.FieldRef<"Post", 'String'>
   readonly description: Prisma.FieldRef<"Post", 'String'>
   readonly status: Prisma.FieldRef<"Post", 'PostStatus'>
   readonly createdAt: Prisma.FieldRef<"Post", 'DateTime'>
+  readonly updatedAt: Prisma.FieldRef<"Post", 'DateTime'>
   readonly authorId: Prisma.FieldRef<"Post", 'Int'>
 }
     
@@ -1403,6 +1756,30 @@ export type PostDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Posts to delete.
    */
   limit?: number
+}
+
+/**
+ * Post.meetings
+ */
+export type Post$meetingsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MeetingRequest
+   */
+  select?: Prisma.MeetingRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MeetingRequest
+   */
+  omit?: Prisma.MeetingRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MeetingRequestInclude<ExtArgs> | null
+  where?: Prisma.MeetingRequestWhereInput
+  orderBy?: Prisma.MeetingRequestOrderByWithRelationInput | Prisma.MeetingRequestOrderByWithRelationInput[]
+  cursor?: Prisma.MeetingRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MeetingRequestScalarFieldEnum | Prisma.MeetingRequestScalarFieldEnum[]
 }
 
 /**

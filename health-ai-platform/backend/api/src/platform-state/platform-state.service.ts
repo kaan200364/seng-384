@@ -1,44 +1,92 @@
 import { Injectable } from '@nestjs/common';
-import { ActivityLog, NotificationItem, PlatformUser } from '../common/platform.types';
+import {
+  ActivityLog,
+  NotificationItem,
+  PlatformUser,
+} from '../common/platform.types';
+import { PrismaService } from '../prisma/prisma.service';
+import { serializeLog, serializeNotification } from '../common/serializers';
 
 @Injectable()
 export class PlatformStateService {
-  private nextLogId = 1;
-  private nextNotificationId = 1;
-  private logs: ActivityLog[] = [];
-  private notifications: NotificationItem[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
-  addLog(user: PlatformUser, actionType: string, targetType: string, targetId: string, details: string) {
-    this.logs.unshift({
-      id: this.nextLogId++,
-      userId: user.id,
-      userName: user.fullName,
-      userRole: user.role,
-      actionType,
-      targetType,
-      targetId,
-      details,
-      createdAt: new Date().toISOString(),
+  async addLog(
+    user: PlatformUser,
+    actionType: string,
+    targetType: string,
+    targetId: string,
+    details: string,
+  ) {
+    await this.prisma.activityLog.create({
+      data: {
+        userId: user.id,
+        userName: user.fullName,
+        userRole: user.role,
+        actionType,
+        targetType,
+        targetId,
+        details,
+      },
     });
   }
 
-  getLogs(filters?: { actionType?: string; role?: string }) {
-    return this.logs.filter((log) => {
-      if (filters?.actionType && filters.actionType !== 'ALL' && log.actionType !== filters.actionType) {
-        return false;
-      }
+  async getLogs(filters?: {
+    actionType?: string;
+    role?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }) {
+    const createdAt =
+      filters?.dateFrom || filters?.dateTo
+        ? {
+            gte: filters.dateFrom
+              ? new Date(`${filters.dateFrom}T00:00:00.000Z`)
+              : undefined,
+            lte: filters.dateTo
+              ? new Date(`${filters.dateTo}T23:59:59.999Z`)
+              : undefined,
+          }
+        : undefined;
 
-      if (filters?.role && filters.role !== 'ALL' && log.userRole !== filters.role) {
-        return false;
-      }
-
-      return true;
+    const logs = await this.prisma.activityLog.findMany({
+      where: {
+        actionType:
+          filters?.actionType && filters.actionType !== 'ALL'
+            ? filters.actionType
+            : undefined,
+        userRole:
+          filters?.role && filters.role !== 'ALL' ? (filters.role as any) : undefined,
+        createdAt,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
+
+    return logs.map((log) => serializeLog(log)) as ActivityLog[];
   }
 
-  exportLogsCsv(filters?: { actionType?: string; role?: string }) {
-    const rows = this.getLogs(filters);
-    const header = 'id,createdAt,userName,userRole,actionType,targetType,targetId,details';
+  async getLogsForUser(userId: number) {
+    const logs = await this.prisma.activityLog.findMany({
+      where: { userId },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return logs.map((log) => serializeLog(log)) as ActivityLog[];
+  }
+
+  async exportLogsCsv(filters?: {
+    actionType?: string;
+    role?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }) {
+    const rows = await this.getLogs(filters);
+    const header =
+      'id,createdAt,userName,userRole,actionType,targetType,targetId,details';
     const data = rows.map((row) =>
       [
         row.id,
@@ -55,25 +103,33 @@ export class PlatformStateService {
     return [header, ...data].join('\n');
   }
 
-  addNotification(userId: number, title: string, message: string) {
-    this.notifications.unshift({
-      id: this.nextNotificationId++,
-      userId,
-      title,
-      message,
-      read: false,
-      createdAt: new Date().toISOString(),
+  async addNotification(userId: number, title: string, message: string) {
+    await this.prisma.notification.create({
+      data: {
+        userId,
+        title,
+        message,
+      },
     });
   }
 
-  getNotificationsForUser(userId: number) {
-    return this.notifications.filter((item) => item.userId === userId);
+  async getNotificationsForUser(userId: number) {
+    const notifications = await this.prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return notifications.map((notification) =>
+      serializeNotification(notification),
+    ) as NotificationItem[];
   }
 
-  markAllNotificationsAsRead(userId: number) {
-    this.notifications = this.notifications.map((item) =>
-      item.userId === userId ? { ...item, read: true } : item,
-    );
+  async markAllNotificationsAsRead(userId: number) {
+    await this.prisma.notification.updateMany({
+      where: { userId },
+      data: { read: true },
+    });
+
     return this.getNotificationsForUser(userId);
   }
 

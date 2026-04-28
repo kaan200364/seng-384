@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
 import SectionCard from '@/components/SectionCard';
@@ -50,10 +50,6 @@ export default function DashboardPage() {
     status: 'ALL',
   });
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
-
-  useEffect(() => {
-    void loadScreen();
-  }, []);
 
   async function loadScreen(nextFilters = filters) {
     try {
@@ -127,6 +123,14 @@ export default function DashboardPage() {
     () => posts.filter((post) => post.author.id === session?.userId),
     [posts, session],
   );
+
+  const syncDashboard = useEffectEvent(() => {
+    void loadScreen();
+  });
+
+  useEffect(() => {
+    syncDashboard();
+  }, []);
 
   if (loading || !session) {
     return <p className="p-10">Loading dashboard...</p>;

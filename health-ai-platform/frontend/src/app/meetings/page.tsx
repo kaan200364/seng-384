@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 import AppShell from '@/components/AppShell';
 import SectionCard from '@/components/SectionCard';
 import { apiJson } from '@/lib/api';
@@ -9,10 +9,6 @@ import { MeetingItem } from '@/lib/platform';
 export default function MeetingsPage() {
   const [meetings, setMeetings] = useState<MeetingItem[]>([]);
   const [message, setMessage] = useState('');
-
-  useEffect(() => {
-    void loadMeetings();
-  }, []);
 
   async function loadMeetings() {
     try {
@@ -35,6 +31,14 @@ export default function MeetingsPage() {
       setMessage(err instanceof Error ? err.message : 'Update failed');
     }
   }
+
+  const syncMeetings = useEffectEvent(() => {
+    void loadMeetings();
+  });
+
+  useEffect(() => {
+    syncMeetings();
+  }, []);
 
   return (
     <AppShell

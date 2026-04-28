@@ -45,7 +45,13 @@ export class AdminController {
     const user = await this.usersService.suspendUser(id);
 
     if (admin) {
-      this.platformState.addLog(admin, 'admin_suspend_user', 'user', String(id), `Suspended user ${user.email}`);
+      await this.platformState.addLog(
+        admin,
+        'admin_suspend_user',
+        'user',
+        String(id),
+        `Suspended user ${user.email}`,
+      );
     }
 
     return user;
@@ -68,23 +74,39 @@ export class AdminController {
   }
 
   @Get('logs')
-  getLogs(@Req() req: any, @Query('actionType') actionType?: string, @Query('role') role?: string) {
+  getLogs(
+    @Req() req: any,
+    @Query('actionType') actionType?: string,
+    @Query('role') role?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
     this.assertAdmin(req.user.role);
-    return this.platformState.getLogs({ actionType, role });
+    return this.platformState.getLogs({ actionType, role, dateFrom, dateTo });
   }
 
   @Get('logs/export')
-  exportLogs(
+  async exportLogs(
     @Req() req: any,
     @Res() res: Response,
     @Query('actionType') actionType?: string,
     @Query('role') role?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
   ) {
     this.assertAdmin(req.user.role);
-    const csv = this.platformState.exportLogsCsv({ actionType, role });
+    const csv = await this.platformState.exportLogsCsv({
+      actionType,
+      role,
+      dateFrom,
+      dateTo,
+    });
 
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename="activity-logs.csv"');
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="activity-logs.csv"',
+    );
     res.send(csv);
   }
 

@@ -111,7 +111,9 @@ export default function HomePage() {
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <h2 className="text-3xl font-black text-slate-900">Create Account</h2>
-                <p className="mt-2 text-sm text-slate-500">Institutional email required</p>
+                <p className="mt-2 text-sm text-slate-500">
+                  Institutional email required. Email verification is simulated for the demo.
+                </p>
               </div>
               <Link href="/login" className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700">
                 Login

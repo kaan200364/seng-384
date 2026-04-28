@@ -5,7 +5,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
-  MeetingRequest,
   MeetingRequestStatus,
   PostStatus,
   UserRole,
@@ -13,13 +12,13 @@ import {
 import { PostsService } from '../posts/posts.service';
 import { UsersService } from '../users/users.service';
 import { PlatformStateService } from '../platform-state/platform-state.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { serializeMeeting } from '../common/serializers';
 
 @Injectable()
 export class MeetingsService {
-  private nextId = 1;
-  private requests: MeetingRequest[] = [];
-
   constructor(
+    private readonly prisma: PrismaService,
     private readonly postsService: PostsService,
     private readonly usersService: UsersService,
     private readonly platformState: PlatformStateService,
@@ -27,55 +26,76 @@ export class MeetingsService {
 
   async createRequest(
     requesterId: number,
-    body: { postId: number; message: string; ndaAccepted: boolean; proposedSlot: string },
+    body: {
+      postId: number;
+      message: string;
+      ndaAccepted: boolean;
+      proposedSlot: string;
+    },
   ) {
     const requester = await this.usersService.findById(requesterId);
-    const post = await this.postsService.getPostById(body.postId, requesterId, requester?.role);
+    const post = await this.postsService.getPostById(
+      body.postId,
+      requesterId,
+      requester?.role,
+    );
 
     if (!requester) {
       throw new NotFoundException('User not found');
     }
 
     if (post.authorId === requesterId) {
-      throw new BadRequestException('You cannot request a meeting for your own post');
+      throw new BadRequestException(
+        'You cannot request a meeting for your own post',
+      );
     }
 
     if (post.status !== PostStatus.ACTIVE) {
-      throw new BadRequestException('Meetings can only be requested for active posts');
+      throw new BadRequestException(
+        'Meetings can only be requested for active posts',
+      );
     }
 
     if (post.confidentialityLevel === 'CONFIDENTIAL' && !body.ndaAccepted) {
-      throw new BadRequestException('You must accept the NDA for confidential posts');
+      throw new BadRequestException(
+        'You must accept the NDA for confidential posts',
+      );
     }
 
-    const request: MeetingRequest = {
-      id: this.nextId++,
-      postId: body.postId,
-      requesterId,
-      ownerId: post.authorId,
-      message: body.message,
-      ndaAccepted: body.ndaAccepted,
-      proposedSlot: body.proposedSlot,
-      status: MeetingRequestStatus.PENDING,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const request = await this.prisma.meetingRequest.create({
+      data: {
+        postId: body.postId,
+        requesterId,
+        ownerId: post.authorId,
+        message: body.message,
+        ndaAccepted: body.ndaAccepted,
+        proposedSlot: body.proposedSlot,
+      },
+      include: {
+        requester: true,
+        owner: true,
+        post: {
+          include: {
+            author: true,
+          },
+        },
+      },
+    });
 
-    this.requests.unshift(request);
-    this.platformState.addLog(
+    await this.platformState.addLog(
       requester,
       'meeting_request',
       'meeting',
       String(request.id),
       `Requested meeting for post "${post.title}"`,
     );
-    this.platformState.addNotification(
+    await this.platformState.addNotification(
       post.authorId,
       'New meeting request',
       `${requester.fullName} requested a meeting for "${post.title}".`,
     );
 
-    return this.enrichRequest(request);
+    return serializeMeeting(request);
   }
 
   async getMyRequests(userId: number, role: string) {
@@ -84,15 +104,28 @@ export class MeetingsService {
       throw new NotFoundException('User not found');
     }
 
-    const rows = this.requests.filter((item) => {
-      if (role === UserRole.ADMIN) {
-        return true;
-      }
-
-      return item.ownerId === userId || item.requesterId === userId;
+    const rows = await this.prisma.meetingRequest.findMany({
+      where:
+        role === UserRole.ADMIN
+          ? undefined
+          : {
+              OR: [{ ownerId: userId }, { requesterId: userId }],
+            },
+      include: {
+        requester: true,
+        owner: true,
+        post: {
+          include: {
+            author: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
 
-    return Promise.all(rows.map((item) => this.enrichRequest(item)));
+    return rows.map((item) => serializeMeeting(item));
   }
 
   async updateRequestStatus(
@@ -100,7 +133,19 @@ export class MeetingsService {
     requestId: number,
     body: { status: MeetingRequestStatus },
   ) {
-    const request = this.requests.find((item) => item.id === requestId);
+    const request = await this.prisma.meetingRequest.findUnique({
+      where: { id: requestId },
+      include: {
+        requester: true,
+        owner: true,
+        post: {
+          include: {
+            author: true,
+          },
+        },
+      },
+    });
+
     if (!request) {
       throw new NotFoundException('Meeting request not found');
     }
@@ -118,19 +163,36 @@ export class MeetingsService {
       throw new ForbiddenException('You cannot manage this meeting request');
     }
 
-    request.status = body.status;
-    request.updatedAt = new Date().toISOString();
+    const updated = await this.prisma.meetingRequest.update({
+      where: { id: requestId },
+      data: {
+        status: body.status as any,
+      },
+      include: {
+        requester: true,
+        owner: true,
+        post: {
+          include: {
+            author: true,
+          },
+        },
+      },
+    });
 
     if (body.status === MeetingRequestStatus.SCHEDULED) {
-      await this.postsService.updatePostStatus(request.postId, request.ownerId, PostStatus.MEETING_SCHEDULED);
-      this.platformState.addNotification(
+      await this.postsService.updatePostStatus(
+        request.postId,
+        request.ownerId,
+        PostStatus.MEETING_SCHEDULED,
+      );
+      await this.platformState.addNotification(
         request.requesterId,
         'Meeting scheduled',
         `Your meeting request #${request.id} has been scheduled.`,
       );
     }
 
-    this.platformState.addLog(
+    await this.platformState.addLog(
       user,
       'meeting_status_change',
       'meeting',
@@ -138,19 +200,6 @@ export class MeetingsService {
       `Updated meeting request to ${body.status}`,
     );
 
-    return this.enrichRequest(request);
-  }
-
-  private async enrichRequest(request: MeetingRequest) {
-    const requester = await this.usersService.getPublicUserById(request.requesterId);
-    const owner = await this.usersService.getPublicUserById(request.ownerId);
-    const post = await this.postsService.getPostById(request.postId, owner.id, owner.role);
-
-    return {
-      ...request,
-      requester,
-      owner,
-      post,
-    };
+    return serializeMeeting(updated);
   }
 }

@@ -1,163 +1,293 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PlatformUser, PublicUser, UserRole } from '../common/platform.types';
+import { PrismaService } from '../prisma/prisma.service';
+import {
+  serializeLog,
+  serializeMeeting,
+  serializeNotification,
+  serializePost,
+  serializeUser,
+} from '../common/serializers';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-    private nextId = 4;
-    private users: PlatformUser[] = [
-        {
-            id: 1,
-            email: 'engineer@metu.edu',
-            password: bcrypt.hashSync('demo123', 10),
-            fullName: 'Kaan Turkay',
-            role: UserRole.ENGINEER,
-            institution: 'Middle East Technical University',
-            expertise: 'Machine Learning, Product Design',
-            city: 'Ankara',
-            bio: 'Engineer focused on healthcare AI workflows and partnership discovery.',
-            emailVerified: true,
-            suspended: false,
-            createdAt: '2026-03-01T09:00:00.000Z',
+  constructor(private readonly prisma: PrismaService) {}
+
+  async createUser(data: {
+    email: string;
+    password: string;
+    fullName: string;
+    role: UserRole;
+    institution?: string;
+    expertise?: string;
+    city?: string;
+    bio?: string;
+  }) {
+    const existing = await this.prisma.user.findUnique({
+      where: {
+        email: data.email.toLowerCase(),
+      },
+    });
+
+    if (existing) {
+      throw new BadRequestException('Email is already registered');
+    }
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: data.email.toLowerCase(),
+        password: data.password,
+        fullName: data.fullName,
+        role: data.role as any,
+        institution: data.institution ?? 'Not provided',
+        expertise: data.expertise ?? 'Not provided',
+        city: data.city ?? 'Not provided',
+        bio: data.bio ?? '',
+      },
+    });
+
+    return serializeUser(user) as PublicUser;
+  }
+
+  async findByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: email.toLowerCase(),
+      },
+    });
+
+    return user ? this.toPlatformUser(user) : undefined;
+  }
+
+  async findAll() {
+    const users = await this.prisma.user.findMany({
+      where: {
+        suspended: false,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    return users.map((user) => serializeUser(user)) as PublicUser[];
+  }
+
+  async findById(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    return user ? this.toPlatformUser(user) : undefined;
+  }
+
+  async getPublicUserById(id: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return serializeUser(user) as PublicUser;
+  }
+
+  async verifyEmail(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: email.toLowerCase(),
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+      },
+    });
+
+    return {
+      message: 'Email verified successfully',
+      user: serializeUser(updated) as PublicUser,
+    };
+  }
+
+  async updateProfile(
+    userId: number,
+    data: {
+      fullName?: string;
+      institution?: string;
+      expertise?: string;
+      city?: string;
+      bio?: string;
+    },
+  ) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        fullName: data.fullName ?? user.fullName,
+        institution: data.institution ?? user.institution,
+        expertise: data.expertise ?? user.expertise,
+        city: data.city ?? user.city,
+        bio: data.bio ?? user.bio,
+      },
+    });
+
+    return serializeUser(updated) as PublicUser;
+  }
+
+  async exportUserData(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        posts: {
+          include: {
+            author: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
         },
-        {
-            id: 2,
-            email: 'doctor@hacettepe.edu',
-            password: bcrypt.hashSync('demo123', 10),
-            fullName: 'Dr. Elif Kaya',
-            role: UserRole.HEALTHCARE_PROFESSIONAL,
-            institution: 'Hacettepe University Hospital',
-            expertise: 'Radiology, Clinical Validation',
-            city: 'Ankara',
-            bio: 'Healthcare professional interested in AI-assisted clinical validation projects.',
-            emailVerified: true,
-            suspended: false,
-            createdAt: '2026-03-02T10:30:00.000Z',
+        requestedMeetings: {
+          include: {
+            requester: true,
+            owner: true,
+            post: {
+              include: {
+                author: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
         },
-        {
-            id: 3,
-            email: 'admin@healthai.edu',
-            password: bcrypt.hashSync('demo123', 10),
-            fullName: 'Aylin Demir',
-            role: UserRole.ADMIN,
-            institution: 'Health AI Program Office',
-            expertise: 'Moderation, Governance',
-            city: 'Istanbul',
-            bio: 'Platform administrator responsible for moderation and audit review.',
-            emailVerified: true,
-            suspended: false,
-            createdAt: '2026-03-03T11:15:00.000Z',
+        ownedMeetings: {
+          include: {
+            requester: true,
+            owner: true,
+            post: {
+              include: {
+                author: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
         },
-    ];
+        notifications: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+        activityLogs: {
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
 
-    async createUser(data: {
-        email: string;
-        password: string;
-        fullName: string;
-        role: UserRole;
-        institution?: string;
-        expertise?: string;
-        city?: string;
-        bio?: string;
-    }) {
-        const existing = this.users.find((user) => user.email.toLowerCase() === data.email.toLowerCase());
-        if (existing) {
-            throw new BadRequestException('Email is already registered');
-        }
-
-        const user: PlatformUser = {
-            id: this.nextId++,
-            email: data.email.toLowerCase(),
-            password: data.password,
-            fullName: data.fullName,
-            role: data.role,
-            institution: data.institution ?? 'Not provided',
-            expertise: data.expertise ?? 'Not provided',
-            city: data.city ?? 'Not provided',
-            bio: data.bio ?? '',
-            emailVerified: false,
-            suspended: false,
-            createdAt: new Date().toISOString(),
-        };
-
-        this.users.push(user);
-        return this.toPublicUser(user);
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
 
-    async findByEmail(email: string) {
-        return this.users.find((user) => user.email.toLowerCase() === email.toLowerCase());
+    return {
+      exportedAt: new Date().toISOString(),
+      user: serializeUser(user) as PublicUser,
+      posts: user.posts.map((post) => serializePost(post)),
+      requestedMeetings: user.requestedMeetings.map((meeting) =>
+        serializeMeeting(meeting),
+      ),
+      ownedMeetings: user.ownedMeetings.map((meeting) =>
+        serializeMeeting(meeting),
+      ),
+      notifications: user.notifications.map((notification) =>
+        serializeNotification(notification),
+      ),
+      activityLogs: user.activityLogs.map((log) => serializeLog(log)),
+    };
+  }
+
+  async suspendUser(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
 
-    async findAll() {
-        return this.users.filter((user) => !user.suspended).map((user) => this.toPublicUser(user));
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { suspended: true },
+    });
+
+    return serializeUser(updated) as PublicUser;
+  }
+
+  async deleteUser(userId: number, currentPassword: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
 
-    async findById(id: number) {
-        return this.users.find((user) => user.id === id);
+    const passwordMatches = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
+
+    if (!passwordMatches) {
+      throw new UnauthorizedException('Current password is incorrect');
     }
 
-    async getPublicUserById(id: number) {
-        const user = await this.findById(id);
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
+    await this.prisma.user.delete({
+      where: { id: userId },
+    });
 
-        return this.toPublicUser(user);
-    }
+    return { message: 'Account deleted successfully' };
+  }
 
-    async verifyEmail(email: string) {
-        const user = await this.findByEmail(email);
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
-
-        user.emailVerified = true;
-        return {
-            message: 'Email verified successfully',
-            user: this.toPublicUser(user),
-        };
-    }
-
-    async updateProfile(
-        userId: number,
-        data: { fullName?: string; institution?: string; expertise?: string; city?: string; bio?: string },
-    ) {
-        const user = await this.findById(userId);
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
-
-        user.fullName = data.fullName ?? user.fullName;
-        user.institution = data.institution ?? user.institution;
-        user.expertise = data.expertise ?? user.expertise;
-        user.city = data.city ?? user.city;
-        user.bio = data.bio ?? user.bio;
-
-        return this.toPublicUser(user);
-    }
-
-    async suspendUser(userId: number) {
-        const user = await this.findById(userId);
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
-
-        user.suspended = true;
-        return this.toPublicUser(user);
-    }
-
-    async deleteUser(userId: number) {
-        const userIndex = this.users.findIndex((user) => user.id === userId);
-        if (userIndex === -1) {
-            throw new NotFoundException('User not found');
-        }
-
-        const [removed] = this.users.splice(userIndex, 1);
-        return this.toPublicUser(removed);
-    }
-
-    private toPublicUser(user: PlatformUser): PublicUser {
-        const { password, ...rest } = user;
-        return rest;
-    }
+  private toPlatformUser(user: {
+    id: number;
+    email: string;
+    password: string;
+    fullName: string;
+    role: any;
+    institution: string;
+    expertise: string;
+    city: string;
+    bio: string;
+    emailVerified: boolean;
+    suspended: boolean;
+    createdAt: Date;
+  }): PlatformUser {
+    return {
+      ...user,
+      role: user.role as UserRole,
+      createdAt: user.createdAt.toISOString(),
+    };
+  }
 }

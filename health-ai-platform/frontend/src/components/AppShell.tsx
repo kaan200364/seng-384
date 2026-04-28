@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { clearSession, getStoredUser } from '@/lib/api';
 
 const navItems = [
@@ -10,7 +10,10 @@ const navItems = [
   { href: '/profile', label: 'Profile' },
   { href: '/meetings', label: 'Meetings' },
   { href: '/admin', label: 'Admin' },
+  { href: '/help', label: 'Help' },
 ];
+
+const supportEmail = 'support@healthai.edu';
 
 export default function AppShell({
   title,
@@ -22,16 +25,9 @@ export default function AppShell({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const [userName, setUserName] = useState('Demo User');
-  const [role, setRole] = useState('USER');
-
-  useEffect(() => {
-    const user = getStoredUser();
-    if (user) {
-      setUserName(user.fullName || user.email);
-      setRole(user.role);
-    }
-  }, [pathname]);
+  const user = getStoredUser();
+  const userName = user?.fullName || user?.email || 'Demo User';
+  const role = user?.role || 'USER';
 
   const initials = userName
     .split(' ')
@@ -104,6 +100,20 @@ export default function AppShell({
           </header>
 
           <main className="flex-1 p-6">{children}</main>
+
+          <footer className="border-t border-orange-200/70 bg-white/70 px-6 py-4">
+            <div className="flex flex-col gap-3 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
+              <p>
+                Support: <a href={`mailto:${supportEmail}`} className="font-semibold text-slate-900 underline">{supportEmail}</a>
+              </p>
+              <a
+                href={`mailto:${supportEmail}?subject=Health%20AI%20Platform%20Feedback`}
+                className="inline-flex items-center justify-center rounded-xl border border-orange-200 bg-orange-50 px-4 py-2 font-semibold text-slate-900"
+              >
+                Feedback
+              </a>
+            </div>
+          </footer>
         </div>
       </div>
     </div>
