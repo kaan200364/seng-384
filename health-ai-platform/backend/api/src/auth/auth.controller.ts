@@ -1,14 +1,14 @@
 import {
-    Body,
-    Controller,
-    Get,
-    Post,
+        Body,
+        Controller,
+        Get,
+        Post,
     Req,
     UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserRole } from '../generated/prisma/client';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { UserRole } from '../common/platform.types';
 
 @Controller('auth')
 export class AuthController {
@@ -25,6 +25,11 @@ export class AuthController {
         },
     ) {
         return this.authService.register(body);
+    }
+
+    @Post('verify-email')
+    verifyEmail(@Body() body: { email: string }) {
+        return this.authService.verifyEmail(body);
     }
 
     @Post('login')

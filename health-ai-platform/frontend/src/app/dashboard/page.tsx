@@ -1,390 +1,387 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '@/components/AppShell';
 import SectionCard from '@/components/SectionCard';
 import StatCard from '@/components/StatCard';
+import { apiJson, clearSession } from '@/lib/api';
+import { NotificationItem, PostItem, PostStatus } from '@/lib/platform';
 
-type MeResponse = {
-    userId: number;
-    email: string;
-    role: string;
+type SessionInfo = {
+  userId: number;
+  email: string;
+  role: string;
 };
 
-type PostItem = {
-    id: number;
-    title: string;
-    description: string;
-    status: string;
-    createdAt: string;
-    authorId: number;
-    author: {
-        id: number;
-        email: string;
-        fullName: string;
-        role: string;
-    };
+type PostForm = {
+  title: string;
+  domain: string;
+  requiredExpertise: string;
+  projectStage: string;
+  confidentialityLevel: 'PUBLIC' | 'CONFIDENTIAL';
+  city: string;
+  description: string;
 };
 
-export default function Dashboard() {
-    const router = useRouter();
+const emptyForm: PostForm = {
+  title: '',
+  domain: 'Cardiology',
+  requiredExpertise: 'Machine Learning Engineer',
+  projectStage: 'Idea',
+  confidentialityLevel: 'PUBLIC',
+  city: 'Ankara',
+  description: '',
+};
 
-    const [user, setUser] = useState<MeResponse | null>(null);
-    const [posts, setPosts] = useState<PostItem[]>([]);
-    const [loading, setLoading] = useState(true);
+export default function DashboardPage() {
+  const router = useRouter();
+  const [session, setSession] = useState<SessionInfo | null>(null);
+  const [posts, setPosts] = useState<PostItem[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
+  const [form, setForm] = useState<PostForm>(emptyForm);
+  const [filters, setFilters] = useState({
+    query: '',
+    domain: 'ALL',
+    city: 'ALL',
+    status: 'ALL',
+  });
+  const [editingPostId, setEditingPostId] = useState<number | null>(null);
 
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [message, setMessage] = useState('');
-    const [creating, setCreating] = useState(false);
+  useEffect(() => {
+    void loadScreen();
+  }, []);
 
-    const [editingPostId, setEditingPostId] = useState<number | null>(null);
-    const [editTitle, setEditTitle] = useState('');
-    const [editDescription, setEditDescription] = useState('');
+  async function loadScreen(nextFilters = filters) {
+    try {
+      const me = await apiJson<SessionInfo>('/auth/me');
+      const query = new URLSearchParams();
 
-    async function loadData(token: string) {
-        const [meRes, postsRes] = await Promise.all([
-            fetch('http://localhost:3000/auth/me', {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }),
-            fetch('http://localhost:3000/posts'),
-        ]);
-
-        if (!meRes.ok) {
-            localStorage.removeItem('token');
-            router.push('/login');
-            return;
+      Object.entries(nextFilters).forEach(([key, value]) => {
+        if (value && value !== 'ALL') {
+          query.set(key, value);
         }
+      });
 
-        const meData = await meRes.json();
-        const postsData = await postsRes.json();
+      const [postsData, notificationsData] = await Promise.all([
+        apiJson<PostItem[]>(`/posts${query.size ? `?${query.toString()}` : ''}`),
+        apiJson<NotificationItem[]>('/users/me/notifications'),
+      ]);
 
-        setUser(meData);
-        setPosts(postsData);
-        setLoading(false);
+      setSession(me);
+      setPosts(postsData);
+      setNotifications(notificationsData);
+      setLoading(false);
+    } catch {
+      clearSession();
+      router.push('/login');
     }
+  }
 
-    useEffect(() => {
-        const token = localStorage.getItem('token');
+  async function submitPost(status: PostStatus) {
+    try {
+      const path = editingPostId ? `/posts/${editingPostId}` : '/posts';
+      const method = editingPostId ? 'PUT' : 'POST';
 
-        if (!token) {
-            router.push('/login');
-            return;
-        }
+      await apiJson(path, {
+        method,
+        body: JSON.stringify({ ...form, status }),
+      });
 
-        loadData(token);
-    }, [router]);
-
-    async function handleCreatePost(e: React.FormEvent) {
-        e.preventDefault();
-        setCreating(true);
-        setMessage('');
-
-        try {
-            const token = localStorage.getItem('token');
-
-            const res = await fetch('http://localhost:3000/posts', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    title,
-                    description,
-                }),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                setMessage(data.message || 'Post oluşturulamadı');
-                return;
-            }
-
-            setMessage('Post oluşturuldu ✅');
-            setTitle('');
-            setDescription('');
-
-            if (token) {
-                await loadData(token);
-            }
-        } catch {
-            setMessage('Sunucuya bağlanılamadı');
-        } finally {
-            setCreating(false);
-        }
+      setForm(emptyForm);
+      setEditingPostId(null);
+      setMessage(editingPostId ? 'Post updated successfully.' : `Post saved as ${status}.`);
+      await loadScreen();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'Post action failed');
     }
+  }
 
-    async function handleDeletePost(postId: number) {
-        const confirmed = window.confirm('Bu postu silmek istediğine emin misin?');
-        if (!confirmed) return;
-
-        try {
-            const token = localStorage.getItem('token');
-
-            const res = await fetch(`http://localhost:3000/posts/${postId}`, {
-                method: 'DELETE',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                setMessage(data.message || 'Post silinemedi');
-                return;
-            }
-
-            setMessage('Post silindi ✅');
-
-            if (token) {
-                await loadData(token);
-            }
-        } catch {
-            setMessage('Sunucuya bağlanılamadı');
-        }
+  async function deletePost(postId: number) {
+    try {
+      await apiJson(`/posts/${postId}`, { method: 'DELETE' });
+      setMessage('Post removed.');
+      await loadScreen();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'Delete failed');
     }
+  }
 
-    function startEdit(post: PostItem) {
-        setEditingPostId(post.id);
-        setEditTitle(post.title);
-        setEditDescription(post.description);
+  async function updateStatus(postId: number, status: PostStatus) {
+    try {
+      await apiJson(`/posts/${postId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      });
+      setMessage(`Status changed to ${status}.`);
+      await loadScreen();
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : 'Status update failed');
     }
+  }
 
-    async function handleUpdatePost(postId: number) {
-        try {
-            const token = localStorage.getItem('token');
+  const ownPosts = useMemo(
+    () => posts.filter((post) => post.author.id === session?.userId),
+    [posts, session],
+  );
 
-            const res = await fetch(`http://localhost:3000/posts/${postId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    title: editTitle,
-                    description: editDescription,
-                }),
-            });
+  if (loading || !session) {
+    return <p className="p-10">Loading dashboard...</p>;
+  }
 
-            const data = await res.json();
+  return (
+    <AppShell
+      title="Dashboard"
+      subtitle="Create collaboration posts, apply filters, and manage the post lifecycle."
+    >
+      <div className="space-y-6">
+        <section className="grid gap-4 md:grid-cols-4">
+          <StatCard label="My Role" value={session.role} hint="Current access level" />
+          <StatCard label="Visible Posts" value={String(posts.length)} hint="Filtered result count" />
+          <StatCard label="My Posts" value={String(ownPosts.length)} hint="Draft + active entries" />
+          <StatCard label="Notifications" value={String(notifications.length)} hint="In-app updates" />
+        </section>
 
-            if (!res.ok) {
-                setMessage(data.message || 'Güncellenemedi');
-                return;
-            }
+        <section className="rounded-[2rem] bg-[#1d293d] p-8 text-white">
+          <p className="text-sm uppercase tracking-[0.25em] text-orange-200">Live demo flow</p>
+          <h2 className="mt-3 text-4xl font-black">Post creation, filtering, and meeting requests in one place.</h2>
+          <p className="mt-3 max-w-3xl text-slate-200">
+            Save a draft first, publish it, then switch users and request a meeting from the post detail page.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/meetings" className="rounded-xl bg-white px-5 py-3 font-semibold text-slate-900">
+              Open Meetings
+            </Link>
+            <Link href="/profile" className="rounded-xl border border-white/30 px-5 py-3 font-semibold text-white">
+              Edit Profile
+            </Link>
+          </div>
+        </section>
 
-            setMessage('Post güncellendi ✅');
-            setEditingPostId(null);
+        <div className="grid gap-6 xl:grid-cols-[1.05fr_1.35fr]">
+          <SectionCard
+            title={editingPostId ? 'Edit Post' : 'Create New Post'}
+            subtitle="Fill all demo-required fields, then save as draft or publish."
+          >
+            <div className="space-y-4">
+              <input
+                value={form.title}
+                onChange={(event) => setForm({ ...form, title: event.target.value })}
+                placeholder="Title"
+                className="w-full rounded-xl border border-slate-200 px-4 py-3"
+              />
+              <div className="grid gap-4 md:grid-cols-2">
+                <input
+                  value={form.domain}
+                  onChange={(event) => setForm({ ...form, domain: event.target.value })}
+                  placeholder="Working Domain"
+                  className="rounded-xl border border-slate-200 px-4 py-3"
+                />
+                <input
+                  value={form.requiredExpertise}
+                  onChange={(event) => setForm({ ...form, requiredExpertise: event.target.value })}
+                  placeholder="Required Expertise"
+                  className="rounded-xl border border-slate-200 px-4 py-3"
+                />
+                <input
+                  value={form.projectStage}
+                  onChange={(event) => setForm({ ...form, projectStage: event.target.value })}
+                  placeholder="Project Stage"
+                  className="rounded-xl border border-slate-200 px-4 py-3"
+                />
+                <input
+                  value={form.city}
+                  onChange={(event) => setForm({ ...form, city: event.target.value })}
+                  placeholder="City"
+                  className="rounded-xl border border-slate-200 px-4 py-3"
+                />
+              </div>
+              <select
+                value={form.confidentialityLevel}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    confidentialityLevel: event.target.value as 'PUBLIC' | 'CONFIDENTIAL',
+                  })
+                }
+                className="w-full rounded-xl border border-slate-200 px-4 py-3"
+              >
+                <option value="PUBLIC">Public</option>
+                <option value="CONFIDENTIAL">Confidential</option>
+              </select>
+              <textarea
+                value={form.description}
+                onChange={(event) => setForm({ ...form, description: event.target.value })}
+                placeholder="Description"
+                rows={6}
+                className="w-full rounded-xl border border-slate-200 px-4 py-3"
+              />
 
-            if (token) {
-                await loadData(token);
-            }
-        } catch {
-            setMessage('Sunucu hatası');
-        }
-    }
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => void submitPost('DRAFT')}
+                  className="rounded-xl bg-slate-200 px-5 py-3 font-semibold text-slate-900"
+                >
+                  Save as Draft
+                </button>
+                <button
+                  onClick={() => void submitPost('ACTIVE')}
+                  className="rounded-xl bg-[#ba4a2f] px-5 py-3 font-semibold text-white"
+                >
+                  {editingPostId ? 'Save Changes' : 'Publish Post'}
+                </button>
+                {editingPostId && (
+                  <button
+                    onClick={() => {
+                      setEditingPostId(null);
+                      setForm(emptyForm);
+                    }}
+                    className="rounded-xl border border-slate-300 px-5 py-3 font-semibold"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
 
-    function handleLogout() {
-        localStorage.removeItem('token');
-        router.push('/login');
-    }
-
-    if (loading) {
-        return <p className="p-10">Loading...</p>;
-    }
-
-    if (!user) return null;
-
-    return (
-        <AppShell
-            title="Dashboard"
-            subtitle="Manage your collaboration posts and view recent activity."
-        >
-            <div className="space-y-6">
-                <section className="grid gap-4 md:grid-cols-3">
-                    <StatCard
-                        label="My Role"
-                        value={user.role}
-                        hint="Current account role"
-                    />
-                    <StatCard
-                        label="Total Posts"
-                        value={String(posts.length)}
-                        hint="Posts currently visible on the platform"
-                    />
-                    <StatCard
-                        label="Account"
-                        value={`#${user.userId}`}
-                        hint={user.email}
-                    />
-                </section>
-
-                <section className="rounded-3xl bg-slate-900 p-8 text-white">
-                    <p className="text-sm uppercase tracking-[0.2em] text-slate-300">
-                        Welcome back
-                    </p>
-                    <h2 className="mt-3 text-4xl font-bold">Build healthcare partnerships faster.</h2>
-                    <p className="mt-3 max-w-2xl text-slate-300">
-                        Create research and innovation posts, connect with domain experts,
-                        and prepare collaboration flows for the platform demo.
-                    </p>
-
-                    <div className="mt-6 flex flex-wrap gap-3">
-                        <button className="rounded-xl bg-white px-5 py-3 font-semibold text-slate-900">
-                            New Collaboration
-                        </button>
-                        <button
-                            onClick={handleLogout}
-                            className="rounded-xl border border-slate-600 px-5 py-3 font-semibold text-white"
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </section>
-
-                <div className="grid gap-6 xl:grid-cols-[1.1fr_1.4fr]">
-                    <SectionCard
-                        title="Create Post"
-                        subtitle="Share a collaboration opportunity with healthcare professionals."
-                    >
-                        <form onSubmit={handleCreatePost} className="space-y-4">
-                            <input
-                                type="text"
-                                placeholder="Post title"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                className="w-full rounded-xl border border-slate-200 px-4 py-3"
-                                required
-                            />
-
-                            <textarea
-                                placeholder="Describe the project, goals, and expertise you need."
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                className="w-full rounded-xl border border-slate-200 px-4 py-3"
-                                rows={6}
-                                required
-                            />
-
-                            <button
-                                type="submit"
-                                disabled={creating}
-                                className="rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white"
-                            >
-                                {creating ? 'Creating...' : 'Create Post'}
-                            </button>
-                        </form>
-
-                        {message && (
-                            <p className="mt-4 text-sm font-medium text-slate-700">{message}</p>
-                        )}
-                    </SectionCard>
-
-                    <SectionCard
-                        title="Recent Posts"
-                        subtitle="Review active posts and manage your own entries."
-                    >
-                        <div className="space-y-4">
-                            {posts.length === 0 ? (
-                                <div className="rounded-2xl bg-slate-50 p-6 text-slate-500">
-                                    No posts yet.
-                                </div>
-                            ) : (
-                                posts.map((post) => (
-                                    <div
-                                        key={post.id}
-                                        className="rounded-2xl border border-slate-200 p-5"
-                                    >
-                                        <div className="flex items-start justify-between gap-4">
-                                            <div className="flex-1">
-                                                {editingPostId === post.id ? (
-                                                    <div className="space-y-3">
-                                                        <input
-                                                            value={editTitle}
-                                                            onChange={(e) => setEditTitle(e.target.value)}
-                                                            className="w-full rounded-xl border border-slate-200 px-3 py-2"
-                                                        />
-
-                                                        <textarea
-                                                            value={editDescription}
-                                                            onChange={(e) => setEditDescription(e.target.value)}
-                                                            className="w-full rounded-xl border border-slate-200 px-3 py-2"
-                                                            rows={4}
-                                                        />
-
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                onClick={() => handleUpdatePost(post.id)}
-                                                                className="rounded-lg bg-green-600 px-4 py-2 text-white"
-                                                            >
-                                                                Save
-                                                            </button>
-                                                            <button
-                                                                onClick={() => setEditingPostId(null)}
-                                                                className="rounded-lg bg-slate-400 px-4 py-2 text-white"
-                                                            >
-                                                                Cancel
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        <h3 className="text-xl font-bold">{post.title}</h3>
-                                                        <p className="mt-2 text-slate-600">{post.description}</p>
-                                                    </>
-                                                )}
-                                            </div>
-
-                                            <span className="rounded-full bg-slate-900 px-3 py-1 text-sm text-white">
-                                                {post.status}
-                                            </span>
-                                        </div>
-
-                                        <div className="mt-4 grid gap-1 text-sm text-slate-500">
-                                            <p>
-                                                <span className="font-semibold text-slate-700">Author:</span>{' '}
-                                                {post.author.fullName}
-                                            </p>
-                                            <p>
-                                                <span className="font-semibold text-slate-700">Email:</span>{' '}
-                                                {post.author.email}
-                                            </p>
-                                            <p>
-                                                <span className="font-semibold text-slate-700">Role:</span>{' '}
-                                                {post.author.role}
-                                            </p>
-                                        </div>
-
-                                        {post.author.id === user.userId && (
-                                            <div className="mt-4 flex gap-2">
-                                                <button
-                                                    onClick={() => startEdit(post)}
-                                                    className="rounded-lg bg-blue-600 px-4 py-2 text-white"
-                                                >
-                                                    Edit
-                                                </button>
-
-                                                <button
-                                                    onClick={() => handleDeletePost(post.id)}
-                                                    className="rounded-lg bg-red-600 px-4 py-2 text-white"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </SectionCard>
-                </div>
+              {message && <p className="text-sm font-medium text-slate-700">{message}</p>}
             </div>
-        </AppShell>
-    );
+          </SectionCard>
+
+          <SectionCard
+            title="Search & Partner Discovery"
+            subtitle="Use multiple filters to demonstrate dynamic results."
+          >
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                <input
+                  value={filters.query}
+                  onChange={(event) => setFilters({ ...filters, query: event.target.value })}
+                  placeholder="Search"
+                  className="rounded-xl border border-slate-200 px-4 py-3"
+                />
+                <input
+                  value={filters.domain === 'ALL' ? '' : filters.domain}
+                  onChange={(event) => setFilters({ ...filters, domain: event.target.value || 'ALL' })}
+                  placeholder="Domain"
+                  className="rounded-xl border border-slate-200 px-4 py-3"
+                />
+                <input
+                  value={filters.city === 'ALL' ? '' : filters.city}
+                  onChange={(event) => setFilters({ ...filters, city: event.target.value || 'ALL' })}
+                  placeholder="City"
+                  className="rounded-xl border border-slate-200 px-4 py-3"
+                />
+                <select
+                  value={filters.status}
+                  onChange={(event) => setFilters({ ...filters, status: event.target.value })}
+                  className="rounded-xl border border-slate-200 px-4 py-3"
+                >
+                  <option value="ALL">All Statuses</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="DRAFT">Draft</option>
+                  <option value="MEETING_SCHEDULED">Meeting Scheduled</option>
+                  <option value="PARTNER_FOUND">Partner Found</option>
+                </select>
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => void loadScreen(filters)}
+                  className="rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white"
+                >
+                  Apply Filters
+                </button>
+                <button
+                  onClick={() => {
+                    const reset = { query: '', domain: 'ALL', city: 'ALL', status: 'ALL' };
+                    setFilters(reset);
+                    void loadScreen(reset);
+                  }}
+                  className="rounded-xl border border-slate-300 px-5 py-3 font-semibold"
+                >
+                  Clear Filters
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {posts.map((post) => (
+                  <article key={post.id} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-xl font-bold">{post.title}</h3>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {post.domain} • {post.city} • {post.requiredExpertise}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-slate-900 px-3 py-1 text-sm text-white">{post.status}</span>
+                    </div>
+
+                    <p className="mt-3 text-slate-700">{post.description}</p>
+                    <div className="mt-4 grid gap-1 text-sm text-slate-600">
+                      <p><span className="font-semibold text-slate-800">Stage:</span> {post.projectStage}</p>
+                      <p><span className="font-semibold text-slate-800">Confidentiality:</span> {post.confidentialityLevel}</p>
+                      <p><span className="font-semibold text-slate-800">Author:</span> {post.author.fullName}</p>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Link href={`/posts/${post.id}`} className="rounded-lg bg-white px-4 py-2 font-semibold text-slate-900 ring-1 ring-slate-300">
+                        View Details
+                      </Link>
+
+                      {post.author.id === session.userId && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setEditingPostId(post.id);
+                              setForm({
+                                title: post.title,
+                                domain: post.domain,
+                                requiredExpertise: post.requiredExpertise,
+                                projectStage: post.projectStage,
+                                confidentialityLevel: post.confidentialityLevel,
+                                city: post.city,
+                                description: post.description,
+                              });
+                            }}
+                            className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white"
+                          >
+                            Edit
+                          </button>
+                          {post.status === 'DRAFT' && (
+                            <button
+                              onClick={() => void updateStatus(post.id, 'ACTIVE')}
+                              className="rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white"
+                            >
+                              Publish
+                            </button>
+                          )}
+                          {post.status === 'MEETING_SCHEDULED' && (
+                            <button
+                              onClick={() => void updateStatus(post.id, 'PARTNER_FOUND')}
+                              className="rounded-lg bg-purple-700 px-4 py-2 font-semibold text-white"
+                            >
+                              Mark Partner Found
+                            </button>
+                          )}
+                          <button
+                            onClick={() => void deletePost(post.id)}
+                            className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white"
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </SectionCard>
+        </div>
+      </div>
+    </AppShell>
+  );
 }
